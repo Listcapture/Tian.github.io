@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Reader</title>
+    <style>
+        #pdfContainer {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+            position: relative;
+        }
+        .page {
+            display: none;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+</head>
+<body>
+    <div id="pdfContainer"></div>
+
+    <script>
+        const pdfContainer = document.getElementById('pdfContainer');
+        let pdfURL='./数据结构基础知识部分.pdf';
+        fetchPDF(pdfURL);
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const pdfURL = './计算机组成原理.pdf'; // Update this with your PDF file path
+        //     fetchPDF(pdfURL);
+        // });
+
+        async function fetchPDF(pdfURL) {
+            try {
+                const pdf = await pdfjsLib.getDocument(pdfURL).promise;
+                const totalPages = pdf.numPages;
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const pageViewport = page.getViewport({ scale: 2 }); // Increase scale for higher resolution
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'page';
+                    canvas.height = pageViewport.height;
+                    canvas.width = pageViewport.width;
+                    pdfContainer.appendChild(canvas);
+                    renderPage(page, canvas);
+                }
+            } catch (error) {
+                console.error('Error fetching or rendering PDF: ', error);
+            }
+        }
+
+        async function renderPage(page, canvas) {
+            try {
+                const context = canvas.getContext('2d');
+                const viewport = page.getViewport({ scale: 2 }); // Increase scale for higher resolution
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                canvas.style.display = 'block'; // Show the canvas after rendering
+            } catch (error) {
+                console.error('Error rendering page: ', error);
+            }
+        }
+    </script>
+</body>
+</html>
