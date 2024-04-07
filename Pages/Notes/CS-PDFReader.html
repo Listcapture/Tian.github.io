@@ -20,12 +20,8 @@
 
     <script>
         const pdfContainer = document.getElementById('pdfContainer');
-        let pdfURL='./计算机组成原理.pdf';
+        let pdfURL = './计算机组成原理.pdf';
         fetchPDF(pdfURL);
-        // document.addEventListener('DOMContentLoaded', function() {
-        //     const pdfURL = './计算机组成原理.pdf'; // Update this with your PDF file path
-        //     fetchPDF(pdfURL);
-        // });
 
         async function fetchPDF(pdfURL) {
             try {
@@ -33,29 +29,56 @@
                 const totalPages = pdf.numPages;
                 for (let i = 1; i <= totalPages; i++) {
                     const page = await pdf.getPage(i);
-                    const pageViewport = page.getViewport({ scale: 2 }); // Increase scale for higher resolution
+                    const pageViewport = page.getViewport({ scale: 1 }); // Initial low-resolution scale
                     const canvas = document.createElement('canvas');
                     canvas.className = 'page';
                     canvas.height = pageViewport.height;
                     canvas.width = pageViewport.width;
                     pdfContainer.appendChild(canvas);
-                    renderPage(page, canvas);
+                    renderBlurredPage(page, canvas); // Initial rendering with low-resolution
+                    canvas.addEventListener('click', () => renderClearPage(page, canvas)); // Enhance quality on click
                 }
             } catch (error) {
                 console.error('Error fetching or rendering PDF: ', error);
             }
         }
 
-        async function renderPage(page, canvas) {
+        async function renderBlurredPage(page, canvas) {
             try {
                 const context = canvas.getContext('2d');
-                const viewport = page.getViewport({ scale: 2 }); // Increase scale for higher resolution
+                const viewport = page.getViewport({ scale: 0.5 }); // Initial low-resolution scale
                 await page.render({ canvasContext: context, viewport: viewport }).promise;
                 canvas.style.display = 'block'; // Show the canvas after rendering
             } catch (error) {
                 console.error('Error rendering page: ', error);
             }
         }
+
+        async function renderClearPage(page, canvas) {
+            try {
+                const context = canvas.getContext('2d');
+                const pageViewport = page.getViewport({ scale: 1 });
+                const pageWidth = pdfContainer.offsetWidth;
+                const viewport = pageViewport.clone({ scale: pageWidth / pageViewport.width });
+                canvas.width = pageWidth;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+            } catch (error) {
+                console.error('Error rendering page: ', error);
+            }
+        }
+
+        // Dynamically adjust canvas size to fit the screen
+        window.addEventListener('resize', () => {
+            const canvasPages = document.querySelectorAll('.page');
+            canvasPages.forEach(canvas => {
+                const pageWidth = pdfContainer.offsetWidth;
+                canvas.width = pageWidth;
+            });
+        });
+
+        // Trigger resize event once initially to set correct canvas size
+        window.dispatchEvent(new Event('resize'));
     </script>
 </body>
 </html>

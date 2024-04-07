@@ -1,153 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>计算机组成原理</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script src="https://cdn.jsdelivr.net/npm/latex.js/dist/latex.js"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
-    <link rel="stylesheet" href="./FeiMan.css">
-
+    <title>PDF Reader</title>
     <style>
-        .problem {
-            font-weight: bold;
-            font-family: "Times New Roman", serif;
+        #pdfContainer {
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+            position: relative;
         }
-
-        .answer {
-            font-family: Arial, sans-serif; /* Default font for answers */
-        }
-
-        #answerColorPicker {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+        .page {
+            display: none;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
 </head>
-
 <body>
-    <!-- Background Image Selector -->
-    <select id="backgroundSelector" onchange="changeBackground()">
-        <option value="url('images/image1.jpg')">Image 1</option>
-        <option value="url('images/image2.jpg')">Image 2</option>
-        <option value="url('images/image3.jpg')">Image 3</option>
-        <option value="url('images/image4.jpg')">Image 4</option>
-        <option value="url('images/image5.jpg')">Image 5</option>
-    </select>
-
-    <!-- Background Image Container -->
-    <div id="background"></div>
-
-    <input type="color" id="answerColorPicker" onchange="changeAnswerColor(this.value)" value="#000000">
-
-    <div id="content">
-        <div id="latex-text">
-            <h1>计算机组成原理</h1>
-        </div>
-    </div>
+    <div id="pdfContainer"></div>
 
     <script>
-        function renderPlainText(text, element) {
-            element.textContent = text;
+        const pdfContainer = document.getElementById('pdfContainer');
+        let pdfURL = './数据结构基础知识部分.pdf';
+        fetchPDF(pdfURL);
+
+        async function fetchPDF(pdfURL) {
+            try {
+                const pdf = await pdfjsLib.getDocument(pdfURL).promise;
+                const totalPages = pdf.numPages;
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const pageViewport = page.getViewport({ scale: 1 }); // Initial low-resolution scale
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'page';
+                    canvas.height = pageViewport.height;
+                    canvas.width = pageViewport.width;
+                    pdfContainer.appendChild(canvas);
+                    renderBlurredPage(page, canvas); // Initial rendering with low-resolution
+                    canvas.addEventListener('click', () => renderClearPage(page, canvas)); // Enhance quality on click
+                }
+            } catch (error) {
+                console.error('Error fetching or rendering PDF: ', error);
+            }
         }
 
-        function renderMath(text, element) {
-            element.textContent = ''; // 清空内容
-            element.innerHTML = text; // 使用innerHTML而不是textContent
-            MathJax.typesetPromise([element]).catch((err) => {
-                console.log('Typeset failed: ' + err);
+        async function renderBlurredPage(page, canvas) {
+            try {
+                const context = canvas.getContext('2d');
+                const viewport = page.getViewport({ scale: 0.5 }); // Initial low-resolution scale
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+                canvas.style.display = 'block'; // Show the canvas after rendering
+            } catch (error) {
+                console.error('Error rendering page: ', error);
+            }
+        }
+
+        async function renderClearPage(page, canvas) {
+            try {
+                const context = canvas.getContext('2d');
+                const pageViewport = page.getViewport({ scale: 1 });
+                const pageWidth = pdfContainer.offsetWidth;
+                const viewport = pageViewport.clone({ scale: pageWidth / pageViewport.width });
+                canvas.width = pageWidth;
+                canvas.height = viewport.height;
+                await page.render({ canvasContext: context, viewport: viewport }).promise;
+            } catch (error) {
+                console.error('Error rendering page: ', error);
+            }
+        }
+
+        // Dynamically adjust canvas size to fit the screen
+        window.addEventListener('resize', () => {
+            const canvasPages = document.querySelectorAll('.page');
+            canvasPages.forEach(canvas => {
+                const pageWidth = pdfContainer.offsetWidth;
+                canvas.width = pageWidth;
             });
-        }
-
-        function toggleAnswer(answerDiv, button) {
-            if (answerDiv.style.display === "none") {
-                answerDiv.style.display = "block";
-                button.textContent = "隐藏答案";
-            } else {
-                answerDiv.style.display = "none";
-                button.textContent = "查看答案";
-            }
-        }
-
-        function fetchDataFromExcel(url) {
-            fetch(url)
-                .then(response => response.text())
-                .then(data => {
-                    let rows = data.split('\n');
-
-                    let contentDiv = document.getElementById("content");
-
-                    rows.forEach(row => {
-                        let columns = row.split(',');
-                        let problem = columns[0];
-                        let answer = columns[1];
-
-                        if (problem && answer) {
-                            let problemDiv = document.createElement("div");
-                            problemDiv.className = "problem";
-
-                            renderPlainText(problem, problemDiv);
-                            contentDiv.appendChild(problemDiv);
-
-
-                            let answerDiv = document.createElement("div");
-                            answerDiv.className = "answer";
-                            renderMath(answer, answerDiv); // 渲染 LaTeX 公式
-                            contentDiv.appendChild(answerDiv);
-
-                            let showAnswerButton = document.createElement("button");
-                            showAnswerButton.textContent = "查看答案";
-                            showAnswerButton.className = "show-answer-button";
-                            showAnswerButton.onclick = function () {
-                                toggleAnswer(answerDiv, showAnswerButton);
-                            };
-                            contentDiv.appendChild(showAnswerButton);
-
-                            contentDiv.appendChild(document.createElement("hr"));
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-        }
-
-        fetchDataFromExcel("./UTF-8-FeiManX.csv");
-        setTimeout(() => {
-            changeBackground();
-        }, 200);
-
-        // Function to change background image
-        function changeBackground() {
-            var selector = document.getElementById("backgroundSelector");
-            var background = document.getElementById("background");
-            var selectedValue = selector.value;
-
-            background.style.backgroundImage = selectedValue;
-        }
-
-        // Function to change answer text color
-        function changeAnswerColor(color) {
-            var answerDivs = document.getElementsByClassName("answer");
-            for (var i = 0; i < answerDivs.length; i++) {
-                answerDivs[i].style.color = color;
-            }
-        }
-
-        // 渲染 LaTeX 公式
-        MathJax.typesetPromise().then(() => {
-            const latexText = document.getElementById('answer-1');
-            const FinalText = latexjs.parse(latexText.text);
-            FinalText.style.visibility = 'visible'; // 防止 MathJax 渲染前的闪烁
-            const latexText2 = document.getElementsByClassName('answer');
-            latexText2.style.visibility = 'visible'; // 防止 MathJax 渲染前的闪烁
         });
+
+        // Trigger resize event once initially to set correct canvas size
+        window.dispatchEvent(new Event('resize'));
     </script>
 </body>
-
 </html>
