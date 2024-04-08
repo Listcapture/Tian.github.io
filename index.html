@@ -10,22 +10,70 @@
         * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-image: -webkit-linear-gradient(right, aliceblue, lightcoral, lightskyblue, antiquewhite);
+        }
+        h1 {
+            text-align: center;
+            color: purple;
+            margin: 10px 0;
+        }
+        hr {
+            margin: 10px 0;
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+        }
+        .Note {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 50%;
+            height: 100%;
+        }
+        .Note a {
+            text-decoration: none;
+            color: red;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 5px;
+            background-color: white;
+            border-radius: 5px;
+            transition: transform 0.3s ease-in-out;
+        }
+        .Note a:hover {
+            transform: scale(1.1);
         }
     </style>
 </head>
 <body>
-<div class="container" style="width:100%;height:1920px;padding:0px;margin:0px;background-image:-webkit-linear-gradient(right,aliceblue,lightcoral,lightskyblue,antiquewhite)">
-    <h1 style="line-height: inherit;;;text-align: center;color: purple">Tian's   Personal Blog</h1>
+<div class="container">
+    <h1>Tian's Personal Blog</h1>
     <hr>
-    <div class="content" style="width: 100%" >
-         <div class="Note" id="408-DS" style="width: 100%;height: 120px;display: inline-block  ;align-items: center;justify-content: center">
-             <a href="/Pages/Notes/DS-PDFReader.html" style="text-decoration: none;color: red;text-align: center"><h1 style="text-align: center">408数据结构</h1></a>
-             <a href="/Pages/Notes/CS-PDFReader.html" style="text-decoration: none;color: red;text-align: center"><h1>计算机组成原理笔记</h1></a>
-             <a href="/Pages/Notes/FeiMan.html" style="text-decoration: none;color: red;text-align: center"><h1>计算机组成原理费曼学习法</h1></a>
-         </div>
+    <div class="content">
+        <div class="Note" id="408-DS">
+            <a href="/Pages/Notes/DS-PDFReader.html"><h1>数据结构基础</h1></a>
+            <a href="/Pages/Notes/CS-PDFReader.html"><h1>计算机组成原理</h1></a>
+            <a href="/Pages/Notes/费曼学习法/计算机网络/FeiMan.html"><h1>计算机网络单人费曼学习法</h1></a>
+            <a href="/Pages/Notes/费曼学习法/操作系统/FeiMan.html"><h1>操作系统单人费曼学习法</h1></a>
+            <a href="/Pages/Notes/费曼学习法/计算机组成原理/FeiMan.html"><h1>计算机组成原理-单人费曼学习法</h1></a>
+        </div>
+        <div class="Note" id="Mathematics">
+            <a href="/Pages/Notes/Math-PDFReader.html"><h1>Advanced Mathematics</h1></a>
+            <a href="/Pages/Notes/CS-PDFReader.html"><h1>Computer Science</h1></a>
+        </div>
     </div>
 </div>
-
-
 </body>
 </html>

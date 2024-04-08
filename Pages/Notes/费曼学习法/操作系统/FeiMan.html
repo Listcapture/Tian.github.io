@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>操作系统</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/latex.js/dist/latex.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="./FeiMan.css">
+
+</head>
+
+<body>
+    <div id="sidebar"></div>
+
+    <select id="backgroundSelector" onchange="changeBackground()">
+        <option value="url('https://www.gstatic.com/webp/gallery/1.jpg')">Image 1</option>
+    </select>
+
+    <div id="background"></div>
+
+    <input type="color" id="answerColorPicker" onchange="changeAnswerColor(this.value)" value="#000000">
+
+    <div id="content">
+        <div id="latex-text">
+            <h1>操作系统</h1>
+        </div>
+    </div>
+
+    <script>
+        function renderMath(text, element) {
+            element.textContent = '';
+            element.innerHTML = text;
+            MathJax.typesetPromise([element]).catch(err => console.log('Typeset failed: ' + err));
+        }
+
+        function toggleAnswer(answerDiv, button) {
+            const display = answerDiv.style.display;
+            answerDiv.style.display = display === 'none' ? 'block' : 'none';
+            button.textContent = display === 'none' ? '隐藏答案' : '查看答案';
+        }
+
+        function fetchDataFromExcel(url) {
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    const rows = data.split('\n');
+                    const contentDiv = document.getElementById('content');
+                    const sidebarDiv = document.getElementById('sidebar');
+
+                    rows.forEach(row => {
+                        const [problem, answer] = row.split(',');
+                        if (problem && answer) {
+                            const problemDiv = document.createElement('div');
+                            const answerDiv = document.createElement('div');
+                            const showAnswerButton = document.createElement('button');
+
+                            problemDiv.className = 'problem';
+                            answerDiv.className = 'answer';
+                            showAnswerButton.className = 'show-answer-button';
+                            showAnswerButton.textContent = '查看答案';
+
+                            renderMath(problem, problemDiv);
+                            renderMath(answer, answerDiv);
+
+                            showAnswerButton.onclick = () => toggleAnswer(answerDiv, showAnswerButton);
+
+                            contentDiv.appendChild(problemDiv);
+                            contentDiv.appendChild(answerDiv);
+                            contentDiv.appendChild(showAnswerButton);
+
+                            contentDiv.appendChild(document.createElement('hr'));
+
+                            const headings = problemDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
+                            headings.forEach(heading => {
+                                const level = parseInt(heading.tagName[1]);
+                                const headingText = heading.textContent.trim();
+                                const link = document.createElement('a');
+                                link.textContent = headingText;
+                                link.href = '#' + headingText.replace(/\s+/g, '-');
+                                link.style.display = 'block';
+                                link.style.marginLeft = level * 10 + 'px';
+                                sidebarDiv.appendChild(link);
+                            });
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+        fetchDataFromExcel('./UTF-8-FeiManX.csv');
+        setTimeout(() => changeBackground(), 200);
+
+        function changeBackground() {
+            const selector = document.getElementById('backgroundSelector');
+            const background = document.getElementById('background');
+            background.style.backgroundImage = selector.value;
+        }
+
+        function changeAnswerColor(color) {
+            const answerDivs = document.getElementsByClassName('answer');
+            for (let i = 0; i < answerDivs.length; i++) {
+                answerDivs[i].style.color = color;
+            }
+        }
+
+        MathJax.typesetPromise().then(() => {
+            const latexText = document.getElementById('answer-1');
+            const FinalText = latexjs.parse(latexText.text);
+            FinalText.style.visibility = 'visible';
+            const latexText2 = document.getElementsByClassName('answer');
+            latexText2.style.visibility = 'visible';
+        });
+    </script>
+</body>
+</html>
