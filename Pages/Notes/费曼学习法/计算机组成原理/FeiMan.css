@@ -61,14 +61,21 @@ a{
 .problem {
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ccc;
+    padding: 10px;
+
+  
+  
+    border-bottom: 1px solid #bbbb;
 }
 
 .answer {
     display: none;
     margin-bottom: 20px;
     padding-top: 10px;
-    border-top: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #cccc;
+    border-top: 1px solid #bbbb;
 }
 
 .show-answer-button {
