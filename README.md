@@ -1,1 +1,1 @@
-# Reminder Me of Taking NoteS!
+# Remind Me of Taking NoteS!
